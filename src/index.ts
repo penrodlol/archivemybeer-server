@@ -22,7 +22,7 @@ import { createConnection } from 'typeorm';
 	server.applyMiddleware({
 		app,
 		path: '/api/archivemybeer',
-		cors: false
+		cors: true
 	});
 
 	app.listen(4123, () => {

@@ -10,7 +10,7 @@ import { createConnection } from 'typeorm';
 
 	await createConnection()
 		.then(() => console.log('✅ Database Connection Success!'))
-		.catch(error => console.log(`❌ Database Connection Failure: ${error}`))
+		.catch(error => console.log(`❌ Database Connection Failure: ${error}`));
 
 	const server = new ApolloServer({
 		schema: await buildSchema({

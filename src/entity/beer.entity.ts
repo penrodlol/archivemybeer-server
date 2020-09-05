@@ -1,12 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from "typeorm";
-import { Field, Int, ObjectType } from "type-graphql";
+import { Entity, Column, BaseEntity, ObjectIdColumn } from "typeorm";
+import { Field, ObjectType, ID } from "type-graphql";
+import { ObjectID } from "mongodb";
 
 @ObjectType()
 @Entity()
 export class Beer extends BaseEntity {
-    @Field(() => Int)
-    @PrimaryGeneratedColumn()
-    id: number;
+    @Field(() => ID) 
+    @ObjectIdColumn()
+    _id: ObjectID;
 
     @Field()
     @Column('varchar', { length: 200 })

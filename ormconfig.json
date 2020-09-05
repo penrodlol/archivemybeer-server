@@ -1,11 +1,15 @@
-{
-    "type": "postgres",
-    "database": "archivemybeer",
-    "port": 5432,
-    "host": "localhost",
-    "username": "christianpenrod",
-    "synchronize": false,
+[
+  {
+    "type": "mongodb",
+    "url": "mongodb+srv://penrodlol:7OWNjlYXwwZVSyYd@archivemybeer-cluster.ek232.azure.mongodb.net/archivemybeer",
+    "synchronize": true,
     "logging": true,
+    "useUnifiedTopology": true,
+    "useNewUrlParser": true,
+    "retryWrites": true,
+    "w": "majority",
+    "ssl": true,
+    "authSource": "admin",
     "entities": ["src/entity/**/*.ts"],
     "migrations": ["src/migration/**/*.ts"],
     "subscribers": ["src/subscriber/**/*.ts"],
@@ -15,3 +19,4 @@
       "subscribersDir": "src/subscriber"
     }
   }
+]

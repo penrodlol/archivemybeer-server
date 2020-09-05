@@ -10,6 +10,11 @@ export class BeerResolver {
         return Beer.find();
     }
 
+    @Query(() => Beer)
+    beer(@Arg('_id', () => String) id: string) {
+        return Beer.findOne({ where: new ObjectID(id) });
+    }
+
     @Mutation(() => Beer)
     async add(@Arg('beer', () => BeerPayload) beer: BeerPayload) {
         return await Beer.create(beer).save();
@@ -28,7 +33,7 @@ export class BeerResolver {
     }
 
     @Mutation(() => String)
-    async remove(@Arg('id', () => String) id: string) {
+    async delete(@Arg('id', () => String) id: string) {
         await Beer.delete({ _id: new ObjectID(id) });
         return id;
     }

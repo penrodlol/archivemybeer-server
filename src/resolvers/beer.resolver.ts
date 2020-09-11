@@ -1,14 +1,16 @@
 import { Resolver, Query, Mutation, Arg } from "type-graphql";
-import { ObjectID, MongoClient, GridFSBucket } from "mongodb";
+import { ObjectID } from "mongodb";
 import { BeerPayload } from '../inputs/beer.input';
 import { Beer } from "../entity/beer.entity";
 import { GraphQLUpload } from "apollo-server-express";
 import { GraphQLScalarType } from "graphql";
 import { FileUpload } from "graphql-upload";
-import { getConnection } from "typeorm";
+import { GridFSUtil } from "../utils/gridfs";
 
 @Resolver()
 export class BeerResolver {
+    gridFSUtil: GridFSUtil = new GridFSUtil();
+
     @Query(() => [Beer])
     beers() {
         return Beer.find();
@@ -42,19 +44,8 @@ export class BeerResolver {
         return id;
     }
 
-    @Mutation(() => Boolean)
-    async uploadImage(@Arg('file', () => GraphQLUpload as GraphQLScalarType) file: FileUpload) {
-        const client = (getConnection().driver as any).queryRunner.databaseConnection as MongoClient;
-        const gridfs = new GridFSBucket(client.db());
-
-        return new Promise((resolve, reject) => {
-            file.createReadStream()
-                .pipe(gridfs.openUploadStream(file.filename))
-                .on('finish', () => resolve(true))
-                .on('error', (err) => {
-                    console.log(err);
-                    reject(false);
-                });
-        });
+    @Mutation(() => String)
+    async uploadImage(@Arg('file', () => GraphQLUpload as GraphQLScalarType) fileUpload: FileUpload) {
+        return this.gridFSUtil.upload(fileUpload);
     }
 }

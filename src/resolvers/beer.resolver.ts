@@ -2,18 +2,18 @@ import { Resolver, Query, Mutation, Arg } from "type-graphql";
 import { ObjectID } from "mongodb";
 import { BeerPayload } from '../inputs/beer.input';
 import { Beer } from "../entity/beer.entity";
-import { GraphQLUpload } from "apollo-server-express";
-import { GraphQLScalarType } from "graphql";
-import { FileUpload } from "graphql-upload";
-import { GridFSUtil } from "../utils/gridfs";
+import { S3Util } from "../utils/s3.util";
 
 @Resolver()
 export class BeerResolver {
-    gridFSUtil: GridFSUtil = new GridFSUtil();
+    s3Utils = new S3Util();
 
     @Query(() => [Beer])
-    beers() {
-        return Beer.find();
+    async beers() {
+        return (await Beer.find()).map(beer => ({
+            ...beer,
+            image_url: this.s3Utils.readBeerImage(`${beer.image}`)
+        }));
     }
 
     @Query(() => Beer)
@@ -42,10 +42,5 @@ export class BeerResolver {
     async delete(@Arg('id', () => String) id: string) {
         await Beer.delete({ _id: new ObjectID(id) });
         return id;
-    }
-
-    @Mutation(() => String)
-    async uploadImage(@Arg('file', () => GraphQLUpload as GraphQLScalarType) fileUpload: FileUpload) {
-        return this.gridFSUtil.upload(fileUpload);
     }
 }

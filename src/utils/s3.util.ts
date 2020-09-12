@@ -19,7 +19,7 @@ export class S3Util {
         })();
     }
 
-    readBeerImage(key: string) {
+    getImageUrl(key: string) {
         return this.AWSS3
             .getSignedUrl(
                 'getObject',

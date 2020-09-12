@@ -12,13 +12,17 @@ export class BeerResolver {
     async beers() {
         return (await Beer.find()).map(beer => ({
             ...beer,
-            image_url: this.s3Utils.readBeerImage(`${beer.image}`)
+            image_url: this.s3Utils.getImageUrl(`${beer.image}`)
         }));
     }
 
     @Query(() => Beer)
-    beer(@Arg('_id', () => String) id: string) {
-        return Beer.findOne({ where: new ObjectID(id) });
+    async beer(@Arg('_id', () => String) id: string) {
+        const beer = await Beer.findOne({ where: new ObjectID(id) });
+        return {
+            ...beer,
+            image_url: this.s3Utils.getImageUrl(`${beer?.image}`)
+        }
     }
 
     @Mutation(() => Beer)

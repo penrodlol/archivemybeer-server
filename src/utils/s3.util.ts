@@ -1,17 +1,25 @@
 import S3 from 'aws-sdk/clients/s3';
+import { Errors } from '../enums/errors.enum';
+import { v4 as uuidv4 } from 'uuid';
+import { Upload } from '../entity/upload.entity';
+
+export interface IUploadResponse {
+    key: string;
+    url: string;
+}
 
 export class S3Util {
     private readonly BUCKET = 'archivemybeer-images';
     private readonly AWSS3 = new S3({
-        accessKeyId: 'AKIAJORKLID5TYVM7M7A',
-        secretAccessKey: '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',
-        region: 'us-east-2',
+        accessKeyId: process.env.AWS_S3_KEY,
+        secretAccessKey: process.env.AWS_S3_SECRET,
+        region: process.env.AWS_S3_REGION,
     });
 
     constructor() {
         (async () => {
             const connection = () => this.AWSS3
-                .headBucket({Bucket: this.BUCKET })
+                .headBucket({Bucket: process.env.AWS_S3_BUCKET as string })
                 .on('success', () => console.log('✅ AWS S3 Connection Success!'))
                 .on('error', error => console.log(`❌ AWS S3 Connection Failure: ${error}`))
                 .promise();
@@ -19,7 +27,7 @@ export class S3Util {
         })();
     }
 
-    getImageUrl(key: string) {
+    getUrl(key: string) {
         return this.AWSS3
             .getSignedUrl(
                 'getObject',
@@ -29,5 +37,20 @@ export class S3Util {
                     // Expires: TBD
                 }
             );
+    }
+
+    async upload(file: Upload): Promise<IUploadResponse | null> {
+        return new Promise((resolve, reject) => {
+            this.AWSS3
+                .upload({
+                    Bucket: process.env.AWS_S3_BUCKET as string,
+                    Key: uuidv4(),
+                    Body: file.createReadStream(),
+                    ContentType: file.mimetype
+                })
+                .promise()
+                .then(upload => resolve({ key: upload.Key, url: this.getUrl(upload.Key) }))
+                .catch(() => reject(new Error(Errors.ImageUploadFailure)));
+        })
     }
 }

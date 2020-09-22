@@ -3,6 +3,10 @@ import { ObjectID } from "mongodb";
 import { BeerPayload } from '../inputs/beer.input';
 import { Beer } from "../entity/beer.entity";
 import { S3Util } from "../utils/s3.util";
+import { GraphQLUpload } from "apollo-server-express";
+import { GraphQLScalarType } from "graphql";
+import { Errors } from "../enums/errors.enum";
+import { Upload } from "../entity/upload.entity";
 
 @Resolver()
 export class BeerResolver {
@@ -12,7 +16,7 @@ export class BeerResolver {
     async beers() {
         return (await Beer.find()).map(beer => ({
             ...beer,
-            image_url: this.s3Utils.getImageUrl(`${beer.image}`)
+            image_url: this.s3Utils.getUrl(`${beer.image}`)
         }));
     }
 
@@ -21,25 +25,29 @@ export class BeerResolver {
         const beer = await Beer.findOne({ where: new ObjectID(id) });
         return {
             ...beer,
-            image_url: this.s3Utils.getImageUrl(`${beer?.image}`)
+            image_url: this.s3Utils.getUrl(`${beer?.image}`)
         }
     }
 
     @Mutation(() => Beer)
-    async add(@Arg('beer', () => BeerPayload) beer: BeerPayload) {
-        return await Beer.create(beer).save();
+    add(@Arg('beer', () => BeerPayload) beer: BeerPayload) {
+        return Beer.create(beer).save();
     }
 
     @Mutation(() => Beer)
     async update
     (
         @Arg('id', () => String) id: string,
-        @Arg('beer', () => BeerPayload) beer: BeerPayload
+        @Arg('beer', () => BeerPayload) beer: BeerPayload,
+        @Arg('file', () => GraphQLUpload as GraphQLScalarType) file: Upload,
     ) {
         const _id = new ObjectID(id);
+        const imageUpload =  await this.s3Utils.upload(file);
 
-        await Beer.update({ _id }, beer);
-        return Beer.findOne({ _id });
+        return Beer
+            .update({ _id }, { ...beer, image: imageUpload?.key })
+            .then(() => ({ _id, ...beer, image_url: imageUpload?.url }))
+            .catch(() => new Error(Errors.BeerUpdateFailure));
     }
 
     @Mutation(() => String)
@@ -47,4 +55,5 @@ export class BeerResolver {
         await Beer.delete({ _id: new ObjectID(id) });
         return id;
     }
+
 }

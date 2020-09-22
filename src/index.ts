@@ -4,8 +4,11 @@ import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
 import { BeerResolver } from './resolvers/beer.resolver';
 import { createConnection } from 'typeorm';
+import * as dotenv from 'dotenv';
 
 (async () => {
+	dotenv.config();
+
 	const app = express();
 
 	await createConnection()

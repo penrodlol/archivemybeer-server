@@ -9,7 +9,6 @@ export interface IUploadResponse {
 }
 
 export class S3Util {
-    private readonly BUCKET = 'archivemybeer-images';
     private readonly AWSS3 = new S3({
         accessKeyId: process.env.AWS_S3_KEY,
         secretAccessKey: process.env.AWS_S3_SECRET,
@@ -32,7 +31,7 @@ export class S3Util {
             .getSignedUrl(
                 'getObject',
                 {
-                    Bucket: this.BUCKET,
+                    Bucket: process.env.AWS_S3_BUCKET as string,
                     Key: key,
                     // Expires: TBD
                 }

@@ -61,9 +61,9 @@ export class BeerResolver {
     @Mutation(() => Boolean)
     async delete(
         @Arg('id', () => String) id: string,
-        @Arg('key', () => String) key: string,
+        @Arg('image', () => String) image: string,
     ) {
-        await this.s3Utils.delete(key);
+        await this.s3Utils.delete(image);
         return Beer
             .delete({ _id: new ObjectID(id) })
             .then(() => true)

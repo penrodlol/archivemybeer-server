@@ -47,14 +47,14 @@ export class BeerResolver {
     (
         @Arg('id', () => String) id: string,
         @Arg('beer', () => BeerPayload) beer: BeerPayload,
-        @Arg('file', () => GraphQLUpload as GraphQLScalarType) file: Upload,
+        @Arg('file', () => GraphQLUpload as GraphQLScalarType, { nullable: true }) file: Upload,
     ) {
         const _id = new ObjectID(id);
-        const imageUpload =  await this.s3Utils.upload(file);
+        const imageUpload = file ? await this.s3Utils.upload(file) : null;
 
         return Beer
-            .update({ _id }, { ...beer, image: imageUpload?.key })
-            .then(() => ({ _id, ...beer, image_url: imageUpload?.url }))
+            .update({ _id }, imageUpload ? { ...beer, image: imageUpload.key } : { ...beer })
+            .then(() => ({ _id, ...beer, image_url: imageUpload ? imageUpload.url : '' }))
             .catch(() => new Error(Errors.BeerUpdateFailure));
     }
 

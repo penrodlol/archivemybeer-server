@@ -58,10 +58,16 @@ export class BeerResolver {
             .catch(() => new Error(Errors.BeerUpdateFailure));
     }
 
-    @Mutation(() => String)
-    async delete(@Arg('id', () => String) id: string) {
-        await Beer.delete({ _id: new ObjectID(id) });
-        return id;
+    @Mutation(() => Boolean)
+    async delete(
+        @Arg('id', () => String) id: string,
+        @Arg('key', () => String) key: string,
+    ) {
+        await this.s3Utils.delete(key);
+        return Beer
+            .delete({ _id: new ObjectID(id) })
+            .then(() => true)
+            .catch(() => new Error(Errors.BeerDeleteFailure));
     }
 
 }

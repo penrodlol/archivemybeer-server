@@ -51,4 +51,17 @@ export class S3Util {
                 .catch(() => reject(new Error(Errors.ImageUploadFailure)));
         })
     }
+
+    async delete(key: string): Promise<null> {
+        return new Promise((resolve, reject) => {
+            this.AWSS3
+                .deleteObject({
+                    Bucket: process.env.AWS_S3_BUCKET as string,
+                    Key: key,
+                })
+                .promise()
+                .then(() => resolve())
+                .catch(() => reject(new Error(Errors.ImageDeleteFailure)));
+        })
+    }
 }

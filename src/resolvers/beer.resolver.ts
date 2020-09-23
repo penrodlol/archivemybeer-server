@@ -14,19 +14,27 @@ export class BeerResolver {
 
     @Query(() => [Beer])
     async beers() {
-        return (await Beer.find()).map(beer => ({
-            ...beer,
-            image_url: this.s3Utils.getUrl(`${beer.image}`)
-        }));
+        return Beer
+            .find()
+            .then(beers => beers.length > 0 ?
+                beers.map(beer => ({
+                    ...beer,
+                    image_url: this.s3Utils.getUrl(`${beer.image}`)}
+                )) :
+                [],
+            )
+            .catch(() => new Error(Errors.BeersRetrievalFailure))
     }
 
     @Query(() => Beer)
     async beer(@Arg('_id', () => String) id: string) {
-        const beer = await Beer.findOne({ where: new ObjectID(id) });
-        return {
-            ...beer,
-            image_url: this.s3Utils.getUrl(`${beer?.image}`)
-        }
+        return Beer
+            .findOne({ where: new ObjectID(id) })
+            .then(beer => beer ? 
+                { ...beer, image_url: this.s3Utils.getUrl(beer.image) } :
+                new Error(Errors.BeerRetrievalFailure)
+            )
+            .catch(() => new Error(Errors.BeerRetrievalFailure));
     }
 
     @Mutation(() => Beer)

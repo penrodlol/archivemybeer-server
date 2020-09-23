@@ -17,12 +17,11 @@ export class S3Util {
 
     constructor() {
         (async () => {
-            const connection = () => this.AWSS3
+            await this.AWSS3
                 .headBucket({Bucket: process.env.AWS_S3_BUCKET as string })
                 .on('success', () => console.log('✅ AWS S3 Connection Success!'))
                 .on('error', error => console.log(`❌ AWS S3 Connection Failure: ${error}`))
                 .promise();
-            await connection();
         })();
     }
 

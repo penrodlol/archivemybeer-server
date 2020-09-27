@@ -3,7 +3,7 @@ import { ObjectID } from "mongodb";
 import { BeerPayload } from '../inputs/beer.input';
 import { Beer } from "../entity/beer.entity";
 import { S3Util } from "../utils/s3.util";
-import { GraphQLUpload } from "apollo-server-express";
+import { ApolloError, GraphQLUpload } from "apollo-server-express";
 import { GraphQLScalarType } from "graphql";
 import { Errors } from "../enums/errors.enum";
 import { Upload } from "../entity/upload.entity";
@@ -23,7 +23,7 @@ export class BeerResolver {
                 )) :
                 [],
             )
-            .catch(() => new Error(Errors.BeersRetrievalFailure))
+            .catch(() => new ApolloError(Errors.BeersRetrievalFailure))
     }
 
     @Query(() => Beer)
@@ -34,7 +34,7 @@ export class BeerResolver {
                 { ...beer, image_url: this.s3Utils.getUrl(beer.image) } :
                 new Error(Errors.BeerRetrievalFailure)
             )
-            .catch(() => new Error(Errors.BeerRetrievalFailure));
+            .catch(() => new ApolloError(Errors.BeerRetrievalFailure));
     }
 
     @Mutation(() => Beer)
@@ -49,13 +49,13 @@ export class BeerResolver {
         @Arg('beer', () => BeerPayload) beer: BeerPayload,
         @Arg('file', () => GraphQLUpload as GraphQLScalarType, { nullable: true }) file: Upload,
     ) {
-        const _id = new ObjectID(id);
         const imageUpload = file ? await this.s3Utils.upload(file) : null;
+        const _id = new ObjectID(id);
 
         return Beer
             .update({ _id }, imageUpload ? { ...beer, image: imageUpload.key } : { ...beer })
             .then(() => ({ _id, ...beer, image_url: imageUpload ? imageUpload.url : '' }))
-            .catch(() => new Error(Errors.BeerUpdateFailure));
+            .catch(() => new ApolloError(Errors.BeerUpdateFailure));
     }
 
     @Mutation(() => Boolean)
@@ -67,7 +67,7 @@ export class BeerResolver {
         return Beer
             .delete({ _id: new ObjectID(id) })
             .then(() => true)
-            .catch(() => new Error(Errors.BeerDeleteFailure));
+            .catch(() => new ApolloError(Errors.BeerDeleteFailure));
     }
 
 }
